@@ -14,7 +14,8 @@ type Config struct {
 
 var config Config
 
-const baseUrl = "https://pokeapi.co/api/v2/location-area/"
+const locationBaseUrl = "https://pokeapi.co/api/v2/location-area/"
+const pokemonBaseUrl = "https://pokeapi.co/api/v2/pokemon/"
 
 type Locations struct {
 	Count    int    `json:"count"`
@@ -41,9 +42,7 @@ func Init(initValues Config) {
 }
 
 func GetLocationDetails(locationName string) (LocationDetails, error) {
-	url := baseUrl
-
-	res, err := http.Get(url + locationName)
+	res, err := http.Get(locationBaseUrl + locationName)
 	if err != nil {
 		return LocationDetails{}, fmt.Errorf("error getting location details: %v", err)
 	}
@@ -57,14 +56,14 @@ func GetLocationDetails(locationName string) (LocationDetails, error) {
 	locationsDetails := LocationDetails{}
 	err = json.Unmarshal(body, &locationsDetails)
 	if err != nil {
-		return LocationDetails{}, fmt.Errorf("error using unmarshal on json code: %v", err)
+		return LocationDetails{}, fmt.Errorf("this location does not exist")
 	}
 
 	return locationsDetails, nil
 }
 
 func GetLocations(usePrevious bool) (Locations, error) {
-	url := baseUrl
+	url := locationBaseUrl
 
 	if usePrevious {
 		if config.PreviousUrl == "" {
@@ -99,4 +98,30 @@ func GetLocations(usePrevious bool) (Locations, error) {
 	config.PreviousUrl = locations.Previous
 
 	return locations, nil
+}
+
+type PokemonDetails struct {
+	BaseExperience int    `json:"base_experience"`
+	Name           string `json:"name"`
+}
+
+func GetPokemonDetails(pokemonName string) (PokemonDetails, error) {
+	res, err := http.Get(pokemonBaseUrl + pokemonName)
+	if err != nil {
+		return PokemonDetails{}, fmt.Errorf("error using GET on pokeapi pokemon: %v", err)
+	}
+	defer res.Body.Close()
+
+	body, err := io.ReadAll(res.Body)
+	if err != nil {
+		return PokemonDetails{}, fmt.Errorf("error reading body from pokemon details response: %v", err)
+	}
+
+	pokemonDetails := PokemonDetails{}
+	err = json.Unmarshal(body, &pokemonDetails)
+	if err != nil {
+		return PokemonDetails{}, fmt.Errorf("this pokemon does not exist")
+	}
+
+	return pokemonDetails, nil
 }

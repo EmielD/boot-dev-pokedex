@@ -3,11 +3,11 @@ package main
 import (
 	"bootdev/emiel/pokedex/internal/pokecache"
 	"bootdev/emiel/pokedex/internal/pokecommands"
-	"bufio"
 	"fmt"
-	"os"
 	"strings"
 	"time"
+
+	"github.com/chzyer/readline"
 )
 
 func main() {
@@ -15,11 +15,19 @@ func main() {
 	commands := pokecommands.InitializeCommands()
 	pokecache.NewCache(5 * time.Second)
 
-	scanner := bufio.NewScanner(os.Stdin)
+	rl, err := readline.NewEx(&readline.Config{
+		Prompt: "Pokedex > ",
+	})
+	if err != nil {
+		panic(err)
+	}
+	defer rl.Close()
+
 	for {
-		fmt.Print("Pokedex > ")
-		scanner.Scan()
-		input := scanner.Text()
+		input, err := rl.Readline()
+		if err != nil {
+			fmt.Printf("an error occurred parsing your input text: %v", err)
+		}
 
 		if len(input) == 0 {
 			continue
@@ -37,14 +45,12 @@ func main() {
 		}
 
 		if command, ok := commands[words[0]]; ok {
-			command.Callback(args...)
+			err := command.Callback(args...)
+			if err != nil {
+				fmt.Println(err.Error())
+			}
 		}
-
 	}
-}
-
-func ParseFromInput(args ...string) string {
-	return ""
 }
 
 func cleanInput(text string) []string {

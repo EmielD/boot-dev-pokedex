@@ -6,6 +6,10 @@ import (
 )
 
 func commandExplore(args ...string) error {
+	if len(args) == 0 {
+		return fmt.Errorf("please specify a location you'd like to explore")
+	}
+
 	location := args[0]
 	locationDetails, err := pokeapi.GetLocationDetails(location)
 	if err != nil {
@@ -16,8 +20,10 @@ func commandExplore(args ...string) error {
 		fmt.Println("No pokemon found in this area...")
 	}
 
+	fmt.Println("Found Pokemon:")
+
 	for _, pokemon := range locationDetails.PokemonEncounters {
-		println(pokemon.Pokemon.Name)
+		fmt.Println("- " + pokemon.Pokemon.Name)
 	}
 
 	return nil

@@ -35,6 +35,11 @@ func InitializeCommands() map[string]cliCommand {
 			description: "Returns more information about the specified location",
 			Callback:    commandExplore,
 		},
+		"catch": {
+			name:        "catch <pokemon-name>",
+			description: "Attempts to catch the specified pokemon",
+			Callback:    commandCatch,
+		},
 		"clear": {
 			name:        "clear",
 			description: "Clears the terminal",
