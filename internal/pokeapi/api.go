@@ -1,10 +1,13 @@
 package pokeapi
 
 import (
+	"bootdev/emiel/pokedex/internal/pokecache"
 	"encoding/json"
 	"fmt"
 	"io"
 	"net/http"
+	"strconv"
+	"time"
 )
 
 type Config struct {
@@ -13,6 +16,7 @@ type Config struct {
 }
 
 var config Config
+var cache = pokecache.NewCache(10 * time.Minute)
 
 const locationBaseUrl = "https://pokeapi.co/api/v2/location-area/"
 const pokemonBaseUrl = "https://pokeapi.co/api/v2/pokemon/"
@@ -42,6 +46,16 @@ func Init(initValues Config) {
 }
 
 func GetLocationDetails(locationName string) (LocationDetails, error) {
+	cacheKey := "LocationDetails:" + locationName
+	cachedResponse, found := cache.Get(cacheKey)
+	if found {
+		var locationDetails LocationDetails
+		err := json.Unmarshal(cachedResponse, &locationDetails)
+		if err == nil {
+			return locationDetails, nil
+		}
+	}
+
 	res, err := http.Get(locationBaseUrl + locationName)
 	if err != nil {
 		return LocationDetails{}, fmt.Errorf("error getting location details: %v", err)
@@ -52,6 +66,7 @@ func GetLocationDetails(locationName string) (LocationDetails, error) {
 	if err != nil {
 		return LocationDetails{}, fmt.Errorf("error reading body from location details response: %v", err)
 	}
+	cache.Add(cacheKey, body)
 
 	locationsDetails := LocationDetails{}
 	err = json.Unmarshal(body, &locationsDetails)
@@ -74,6 +89,16 @@ func GetLocations(usePrevious bool) (Locations, error) {
 		url = config.NextUrl
 	}
 
+	cacheKey := url + strconv.FormatBool(usePrevious)
+	cachedResponse, found := cache.Get(cacheKey)
+	if found {
+		var locations Locations
+		err := json.Unmarshal(cachedResponse, &locations)
+		if err == nil {
+			return locations, nil
+		}
+	}
+
 	res, err := http.Get(url)
 	if err != nil {
 		return Locations{}, fmt.Errorf("error using GET on pokeapi location: %v", err)
@@ -87,6 +112,7 @@ func GetLocations(usePrevious bool) (Locations, error) {
 	if err != nil {
 		return Locations{}, fmt.Errorf("using GET on API endpoint resulted in error: %v", err)
 	}
+	cache.Add(cacheKey, body)
 
 	locations := Locations{}
 	err = json.Unmarshal(body, &locations)

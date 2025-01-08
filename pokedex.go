@@ -1,11 +1,9 @@
 package main
 
 import (
-	"bootdev/emiel/pokedex/internal/pokecache"
 	"bootdev/emiel/pokedex/internal/pokecommands"
 	"fmt"
 	"strings"
-	"time"
 
 	"github.com/chzyer/readline"
 )
@@ -13,7 +11,6 @@ import (
 func main() {
 
 	commands := pokecommands.InitializeCommands()
-	pokecache.NewCache(5 * time.Second)
 
 	rl, err := readline.NewEx(&readline.Config{
 		Prompt: "Pokedex > ",

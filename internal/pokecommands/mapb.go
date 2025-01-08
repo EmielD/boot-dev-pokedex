@@ -8,7 +8,6 @@ import (
 func commandMapB(args ...string) error {
 	locations, err := pokeapi.GetLocations(true)
 	if err != nil {
-		fmt.Println(err)
 		return err
 	}
 	for _, location := range locations.Results {
