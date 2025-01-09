@@ -45,6 +45,16 @@ func InitializeCommands() map[string]cliCommand {
 			description: "Clears the terminal",
 			Callback:    commandClear,
 		},
+		"inspect": {
+			name:        "inspect <pokemon-name>",
+			description: "Gives detailed information of the caught pokemon",
+			Callback:    commandInspect,
+		},
+		"pokedex": {
+			name:        "pokedex",
+			description: "Returns all the pokemon you have caught",
+			Callback:    commandPokedex,
+		},
 	}
 
 	return commands

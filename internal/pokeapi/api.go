@@ -10,6 +10,8 @@ import (
 	"time"
 )
 
+var CaughtPokemonNames = make(map[string]struct{})
+
 type Config struct {
 	NextUrl     string
 	PreviousUrl string
@@ -127,11 +129,43 @@ func GetLocations(usePrevious bool) (Locations, error) {
 }
 
 type PokemonDetails struct {
-	BaseExperience int    `json:"base_experience"`
+	Height         int    `json:"height"`
 	Name           string `json:"name"`
+	BaseExperience int    `json:"base_experience"`
+	Species        struct {
+		Name string `json:"name"`
+		URL  string `json:"url"`
+	} `json:"species"`
+	Stats []struct {
+		BaseStat int `json:"base_stat"`
+		Effort   int `json:"effort"`
+		Stat     struct {
+			Name string `json:"name"`
+			URL  string `json:"url"`
+		} `json:"stat"`
+	} `json:"stats"`
+	Types []struct {
+		Slot int `json:"slot"`
+		Type struct {
+			Name string `json:"name"`
+			URL  string `json:"url"`
+		} `json:"type"`
+	} `json:"types"`
+	Weight int `json:"weight"`
 }
 
 func GetPokemonDetails(pokemonName string) (PokemonDetails, error) {
+
+	cacheKey := pokemonBaseUrl + ":" + pokemonName
+	cachedResponse, found := cache.Get(cacheKey)
+	if found {
+		var pokemonDetails PokemonDetails
+		err := json.Unmarshal(cachedResponse, &pokemonDetails)
+		if err == nil {
+			return pokemonDetails, nil
+		}
+	}
+
 	res, err := http.Get(pokemonBaseUrl + pokemonName)
 	if err != nil {
 		return PokemonDetails{}, fmt.Errorf("error using GET on pokeapi pokemon: %v", err)
